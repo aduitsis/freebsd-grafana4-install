@@ -8,6 +8,11 @@ GOPATH=         /root/go
 GRAFANA=        github.com/grafana/grafana
 
 
+FULL=		${GOPATH}/src/${GRAFANA}
+BIN=		${FULL}/bin
+CONF=		${FULL}/conf
+DATA=		${FULL}/data
+
 install_go:
 	pkg info -q go || pkg install -y go
 
@@ -15,7 +20,7 @@ build_go: install_go
 	mkdir -p ${GOPATH}
 	echo GOPATH is $$GOPATH
 	- go get ${GRAFANA}
-	( cd $$GOPATH/src/${GRAFANA} ; \
+	( cd ${FULL} ; \
 	go run build.go setup ; \
 	go run build.go build \
 	)
@@ -29,11 +34,17 @@ install_node:
 	npm install -g grunt-cli
 
 build_node: install_node
-	( cd $$GOPATH/src/${GRAFANA} ; \
+	( cd ${FULL} ; \
 	npm install phantomjs-prebuilt ; \
 	npm install node-sass ; \
 	yarn install --pure-lockfile ; \
 	grunt \
 	)
+
+customize:
+	install custom.ini ${CONF}
+
+start:
+	screen ${BIN}/grafana-server -homepath ${FULL}
 
 # static root with js files is at : root/go/src/github.com/grafana/grafana/public
